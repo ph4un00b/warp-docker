@@ -1,0 +1,1 @@
+hurl --test .\api.hurl
