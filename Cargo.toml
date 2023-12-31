@@ -6,5 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# libsql-client = "0.33.2"
+url = "2.5.0"
+libsql = { git = "https://github.com/tursodatabase/libsql" }
 tokio = { version = "1.35.1", features = ["full"] }
 warp = "0.3.6"
+
+#? for libsql::Database::open_remote_with_connector
+#? @see https://github.com/tursodatabase/libsql/blob/main/libsql/examples/flutter.rs
+# hyper-rustls = "0.24.2"

@@ -1,24 +1,41 @@
-version: "3.7"
+version: "3.9"
 services:
-  database:
-    image: postgres
-    restart: always
-    env_file:
-      - .env
+  #* @see https://github.com/tursodatabase/libsql/tree/main/docker-compose
+  writer:
+    image: docker-compose-writer
+    environment:
+      - SQLD_NODE=primary
     ports:
-      - "5432:5432"
-    volumes:
-      - data:/var/lib/postgresql/data
-  server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    # env_file: .env
+      - "6000:5000"
+  reader:
+    image: docker-compose-reader
+    environment:
+      - SQLD_NODE=replica
+      - SQLD_PRIMARY_URL=http://writer:5001
+      - SQLD_HTTP_LISTEN_ADDR=0.0.0.0:8080
     depends_on:
-      - database
-    networks:
-      - default
+      - writer
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - reader
     ports:
+      - "6001:6001"
       - "8080:8080"
+  # todo: run all on container
+  # * we run just the local db atm❗
+  # server:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   # env_file: .env
+  #   depends_on:
+  #     - nginx
+  #   networks:
+  #     - default
+  #   ports:
+  #     - "4560:4560"
 volumes:
   data:
