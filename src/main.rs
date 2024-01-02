@@ -10,7 +10,7 @@ async fn main() {
     // .unwrap();
     let db =
         // libsql::Database::open_remote_with_connector("http://localhost:8080", "", https).unwrap();
-        libsql::Database::open_remote("http://localhost:8080", "").unwrap();
+        libsql::Database::open_remote("http://sqld:8080", "").unwrap();
     let conn = db.connect().unwrap();
 
     conn.execute("CREATE TABLE IF NOT EXISTS users (username)", ())
@@ -24,7 +24,7 @@ async fn main() {
     if let Ok(mut a) = conn.query("SELECT * FROM users", ()).await {
         println!("rows?: {:?}", a.next().is_ok())
     }
-
+    println!("hi 4560 👋");
     //? GET /hello/warp => 200 OK with body "Hello, warp!"
     let hello = warp::path!("hello" / String).map(|name| format!("Hello, {}!", name));
     warp::serve(hello).run(([0, 0, 0, 0], 4560)).await;

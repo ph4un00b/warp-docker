@@ -1,0 +1,7 @@
+FROM rust:slim-bullseye AS builder
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    net-tools curl
+COPY ./ ./
+RUN cargo build --release
+CMD ["nohup", "./target/release/warp-docker", "&"]

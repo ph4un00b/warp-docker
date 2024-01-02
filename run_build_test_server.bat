@@ -1,0 +1,1 @@
+docker buildx build --tag rustiko:test --file .\dockerfile.ga .
