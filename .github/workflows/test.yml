@@ -1,0 +1,87 @@
+# * usage:  E:\apps\act.exe -j test -s GITHUB_TOKEN="$(gh auth token)" --pull=false -P ubuntu-latest=catthehacker/ubuntu:custom-20.04-20231229  --no-cache-server
+name: test api
+on:
+  push:
+  repository_dispatch:
+    types: [test]
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: docker network
+        run: |
+          docker network ls
+          docker network ls | grep jamon && docker network rm jamon
+          docker network create jamon
+          docker image ls
+
+      - name: sqld
+        run: docker run --rm --detach -p 8080:8080 --name sqld -e RUST_LOG=sqld=debug,info --network jamon ghcr.io/tursodatabase/libsql-server:main
+
+      - name: build api image
+        # todo: can we cache an image on GH❓
+        # todo: can we avoid unnecesary rebuilds (f.i. with hash tag)❓
+        run: docker buildx build --tag rustiko:gha --file dockerfile.ga .
+
+      - name: server
+        run: docker run --rm --detach -p 4560:4560 --name server --network jamon rustiko:gha
+
+      # - name: rustup
+      #   uses: actions-rs/toolchain@v1
+      #   with:
+      #     profile: minimal
+      #     toolchain: nightly
+      #     override: true
+
+      # - name: Cache rust dependencies
+      #   uses: Swatinem/rust-cache@v2
+
+      # - name: build
+      #   run: cargo build --release
+
+      # - name: cargo run
+      #   run: cargo run --release
+
+      # - name: 🌳
+      # run: tree target
+
+      # - name: 🎉 RUN
+      # run: nohup ./target/release/warp-docker output.log 2>&1 &
+      # run: nohup ./target/release/warp-docker &
+      # run: ./target/release/warp-docker
+
+      - name: hurl
+        run: |
+          VERSION=4.1.0
+          curl --location --remote-name https://github.com/Orange-OpenSource/hurl/releases/download/$VERSION/hurl_${VERSION}_amd64.deb
+          sudo apt update && sudo apt install ./hurl_${VERSION}_amd64.deb
+
+      # - name: curl
+      #   run: curl -X GET http://127.0.0.1:4560/hello/jamon
+
+      - name: test
+        run: hurl --test api.hurl
+
+      - name: run ls
+        run: |
+          ss -natup
+          echo '==== 😏'
+          netstat -natup
+          ls -lahrt .
+          ps -aux
+
+      - name: Dump sqld logs and stop
+        if: always()
+        run: |
+          docker logs sqld
+          docker ps
+          docker ps | grep sqld && docker kill sqld
+          docker ps | grep server && docker kill server
