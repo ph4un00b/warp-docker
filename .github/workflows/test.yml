@@ -29,10 +29,10 @@ jobs:
       - name: build docker
         # todo: can we cache an image on GH❓
         # todo: can we avoid unnecesary rebuilds (f.i. with hash tag)❓
-        run: docker buildx build --tag rustiko:gha --file dockerfile.ga .
+        run: docker buildx build --tag rustiko:chef --file dockerfile.ga .
 
       - name: server
-        run: docker run --rm --detach -p 4560:4560 --name server --network jamon rustiko:gha
+        run: docker run --rm --detach -p 4560:4560 --name server --network jamon rustiko:chef
 
       - name: install hurl
         run: |

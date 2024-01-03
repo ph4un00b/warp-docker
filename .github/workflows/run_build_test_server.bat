@@ -1,1 +1,1 @@
-docker buildx build --tag rustiko:test --file .\dockerfile.ga .
+docker buildx build --tag rustiko:chef --file .\dockerfile.ga .
