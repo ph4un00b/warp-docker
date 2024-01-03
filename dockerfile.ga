@@ -1,26 +1,38 @@
-# * ============ compute the recipe file ==================
+#* ================== Stage 1: 🦀 Recipe =======================
 FROM lukemathwalker/cargo-chef:latest-rust-1 AS chef
 WORKDIR /app
-FROM chef AS planner
+
+# Copy only the necessary files for dependency resolution
 COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
-#* ==== cache our dependencies and builds the binary =====
+
+#* ===================== Stage 2: 🔨 Cache && Build =============
 FROM chef AS builder
-COPY --from=planner /app/recipe.json recipe.json
-#? Build dependencies - this is the caching Docker layer!
+
+# Copy the prepared recipe to the builder stage
+COPY --from=chef /app/recipe.json recipe.json
+
+# Build dependencies (caching this layer for faster builds)
 RUN cargo chef cook --release --recipe-path recipe.json
-#? Build application
+
+# Copy the entire application source and build the application
 COPY . .
 RUN cargo build --release --bin warp-docker
-# * ================ runtime environment =================
-#? We do not need the Rust toolchain to run the binary❗
+
+#* ===================== Stage 3: ✅ Runtime =====================
 FROM debian:bookworm-slim AS runtime
-#? Install ca-certificates without recommended packages
+
+# Install ca-certificates without recommended packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates && \
     update-ca-certificates && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
+
+# Copy only the necessary artifacts from the builder stage
 COPY --from=builder /app/target/release/warp-docker /usr/local/bin
+
+# Set the entry point for the runtime
 ENTRYPOINT ["/usr/local/bin/warp-docker"]
