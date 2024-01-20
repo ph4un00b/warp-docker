@@ -1,28 +1,30 @@
+#/ docker for github actiions❗
+
 #* ================== Stage 1: 🦀 Recipe =======================
 FROM lukemathwalker/cargo-chef:latest-rust-1 AS chef
 WORKDIR /app
 
-# Copy only the necessary files for dependency resolution
+#? Copy only the necessary files for dependency resolution
 COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
 #* ===================== Stage 2: 🔨 Cache && Build =============
 FROM chef AS builder
 
-# Copy the prepared recipe to the builder stage
+#? Copy the prepared recipe to the builder stage
 COPY --from=chef /app/recipe.json recipe.json
 
-# Build dependencies (caching this layer for faster builds)
+#? Build dependencies (caching this layer for faster builds)
 RUN cargo chef cook --release --recipe-path recipe.json
 
-# Copy the entire application source and build the application
+#? Copy the entire application source and build the application
 COPY . .
 RUN cargo build --release --bin warp-docker
 
 #* ===================== Stage 3: ✅ Runtime =====================
 FROM debian:bookworm-slim AS runtime
 
-# Install ca-certificates without recommended packages
+#? Install ca-certificates without recommended packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates && \
     update-ca-certificates && \
@@ -31,8 +33,8 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-# Copy only the necessary artifacts from the builder stage
+#? Copy only the necessary artifacts from the builder stage
 COPY --from=builder /app/target/release/warp-docker /usr/local/bin
 
-# Set the entry point for the runtime
+#? Set the entry point for the runtime
 ENTRYPOINT ["/usr/local/bin/warp-docker"]
