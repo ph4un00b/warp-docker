@@ -1,0 +1,5 @@
+## 🍕 requirements
+
+- rust
+- docker
+- hurl
