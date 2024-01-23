@@ -14,6 +14,9 @@ warp = "0.3.6"
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 reqwest = "0.11.23"
+backon = "0.4.1"
+anyhow = "1.0.79"
+backoff = "0.4.0"
 
 #? for libsql::Database::open_remote_with_connector
 #? @see https://github.com/tursodatabase/libsql/blob/main/libsql/examples/flutter.rs

@@ -1,7 +1,9 @@
 {
     "cSpell.words": [
+        "backon",
         "libsql",
         "reqwest",
+        "Retryable",
         "rustls",
         "webpki"
     ]
