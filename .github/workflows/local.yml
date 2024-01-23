@@ -4,9 +4,8 @@
 #? E:\apps\act.exe -j local -s GITHUB_TOKEN="$(gh auth token)" --pull=false -P ubuntu-latest=catthehacker/ubuntu:custom-20.04-20231229  --no-cache-server
 name: locally test api
 on:
-  push:
   repository_dispatch:
-    types: [test]
+    types: [local]
 
 permissions:
   contents: write
