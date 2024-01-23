@@ -6,8 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# libsql-client = "0.33.2"
 url = "2.5.0"
+#/ this speeds up ci❗
 libsql = { git = "https://github.com/tursodatabase/libsql", default-features = false, features = [
     "remote",
 ] }
