@@ -1,10 +1,16 @@
+use backon::Retryable;
 use warp::Filter;
 
 #[tokio::main]
-async fn main() {
-    // use tracing_subscriber::EnvFilter;
-
+async fn main() -> anyhow::Result<()> {
     setup_logging();
+
+    ping_database
+        .retry(&backon::ExponentialBuilder::default().with_max_times(5))
+        .await?;
+    println!("✅ fetch succeeded");
+
+    // use tracing_subscriber::EnvFilter;
 
     // let db = libsql_client::Client::from_config(libsql_client::Config {
     //     url: url::Url::parse("http://127.0.0.1:8080").unwrap(),
@@ -32,6 +38,27 @@ async fn main() {
     //? GET /hello/warp => 200 OK with body "Hello, warp!"
     let hello = warp::path!("hello" / String).map(|name| format!("Hello, {}!", name));
     warp::serve(hello).run(([0, 0, 0, 0], 4560)).await;
+    Ok(())
+}
+
+//? async fn fetch<TUrl: reqwest::IntoUrl>(url: TUrl, tag: &str) -> anyhow::Result<()> {
+async fn ping_database() -> anyhow::Result<String> {
+    let url = "http://sqld:8080";
+    let client = reqwest::Client::new();
+    let response = client.get(url).send().await.map_err(|err| {
+        println!("❌ Attempt - failed with error: {}", err);
+        anyhow::anyhow!("some kind of error")
+    })?;
+
+    if !response.status().is_success() {
+        println!("Attempt # failed with status code: {}", response.status());
+        anyhow::bail!("some kind of error");
+    }
+
+    let pong = response.text().await?;
+    println!("Service is available!: {}", pong);
+
+    Ok(pong)
 }
 
 fn setup_logging() {
