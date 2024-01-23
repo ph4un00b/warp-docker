@@ -3,12 +3,16 @@ use warp::Filter;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    std::env::set_var("DATABASE_URL", "http://sqld:8080");
     setup_logging();
 
     ping_database
-        .retry(&backon::ExponentialBuilder::default().with_max_times(5))
+        .retry(
+            &backon::ExponentialBuilder::default()
+                .with_factor(1.2)
+                .with_max_times(10),
+        )
         .await?;
-    println!("✅ fetch succeeded");
 
     // use tracing_subscriber::EnvFilter;
 
@@ -18,9 +22,10 @@ async fn main() -> anyhow::Result<()> {
     // })
     // .await
     // .unwrap();
+    let db_url = std::env::var("DATABASE_URL")?;
     let db =
         // libsql::Database::open_remote_with_connector("http://localhost:8080", "", https).unwrap();
-        libsql::Database::open_remote("http://sqld:8080", "").unwrap();
+        libsql::Database::open_remote(db_url, "").unwrap();
     let conn = db.connect().unwrap();
 
     conn.execute("CREATE TABLE IF NOT EXISTS users (username)", ())
@@ -43,12 +48,16 @@ async fn main() -> anyhow::Result<()> {
 
 //? async fn fetch<TUrl: reqwest::IntoUrl>(url: TUrl, tag: &str) -> anyhow::Result<()> {
 async fn ping_database() -> anyhow::Result<String> {
-    let url = "http://sqld:8080";
+    let url = std::env::var("DATABASE_URL")?;
     let client = reqwest::Client::new();
-    let response = client.get(url).send().await.map_err(|err| {
-        println!("❌ Attempt - failed with error: {}", err);
-        anyhow::anyhow!("some kind of error")
-    })?;
+    let response = client
+        .get(format!("{}/version", url))
+        .send()
+        .await
+        .map_err(|err| {
+            println!("❌ Attempt - failed with error: {}", err);
+            anyhow::anyhow!("some kind of error")
+        })?;
 
     if !response.status().is_success() {
         println!("Attempt # failed with status code: {}", response.status());
@@ -56,8 +65,7 @@ async fn ping_database() -> anyhow::Result<String> {
     }
 
     let pong = response.text().await?;
-    println!("Service is available!: {}", pong);
-
+    println!("✅ Service is available!: {}", pong);
     Ok(pong)
 }
 
