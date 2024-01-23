@@ -23,3 +23,11 @@ reqwest-middleware = "0.2.4"
 #? for libsql::Database::open_remote_with_connector
 #? @see https://github.com/tursodatabase/libsql/blob/main/libsql/examples/flutter.rs
 # hyper-rustls = "0.24.2"
+
+[features]
+#? no features by default
+default = []
+
+#? Add feature "local" here, then you can use it.
+#? Our "local" feature depends on nothing else.
+local = []

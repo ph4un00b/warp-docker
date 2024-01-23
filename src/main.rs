@@ -3,7 +3,16 @@ use warp::Filter;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    std::env::set_var("DATABASE_URL", "http://sqld:8080");
+    // #[cfg(feature = "local")]
+    // {
+    //     std::env::set_var("DATABASE_URL", "http://localhost:8080");
+    // }
+    if cfg!(feature = "local") {
+        std::env::set_var("DATABASE_URL", "http://localhost:8080");
+    } else {
+        std::env::set_var("DATABASE_URL", "http://sqld:8080");
+    }
+
     setup_logging();
 
     ping_database
