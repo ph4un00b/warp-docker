@@ -11,6 +11,8 @@ url = "2.5.0"
 libsql = { git = "https://github.com/tursodatabase/libsql" }
 tokio = { version = "1.35.1", features = ["full"] }
 warp = "0.3.6"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 
 #? for libsql::Database::open_remote_with_connector
 #? @see https://github.com/tursodatabase/libsql/blob/main/libsql/examples/flutter.rs
