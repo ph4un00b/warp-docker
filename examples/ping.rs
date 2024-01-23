@@ -1,7 +1,7 @@
 // * @see https://github.com/matter-labs/zksync-era/blob/v7.0.0-rc0/core/lib/utils/src/http_with_retries.rs
 #[tokio::main]
 async fn main() {
-    let url = "https://examplejamon.com";
+    let url = "https://httpbingo.org/unstable?failure_rate=0.9";
     let max_retries = 5;
     let client = reqwest::Client::new();
 

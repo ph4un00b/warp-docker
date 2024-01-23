@@ -3,7 +3,7 @@ use backon::Retryable;
 async fn fetch() -> anyhow::Result<String> {
     let response = reqwest::get("https://httpbingo.org/unstable?failure_rate=0.9").await?;
     if !response.status().is_success() {
-        println!("{}", response.status());
+        println!("retry: {}", response.status());
         anyhow::bail!("some kind of error");
     }
 
