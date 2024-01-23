@@ -1,5 +1,8 @@
-# * usage:  E:\apps\act.exe -j test -s GITHUB_TOKEN="$(gh auth token)" --pull=false -P ubuntu-latest=catthehacker/ubuntu:custom-20.04-20231229  --no-cache-server
-name: test api
+# * verify image:
+#? $ docker pull catthehacker/ubuntu:custom-20.04
+# * run:
+#? E:\apps\act.exe -j local -s GITHUB_TOKEN="$(gh auth token)" --pull=false -P ubuntu-latest=catthehacker/ubuntu:custom-20.04-20231229  --no-cache-server
+name: locally test api
 on:
   push:
   repository_dispatch:
@@ -9,7 +12,7 @@ permissions:
   contents: write
 
 jobs:
-  test:
+  local:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,13 +26,16 @@ jobs:
           docker network create jamon
           docker image ls
 
-      - name: build docker
-        # todo: can we cache an image on GH❓
-        # todo: can we avoid unnecesary rebuilds (f.i. with hash tag)❓
-        run: docker buildx build --tag rustiko:chef --file dockerfile.ga .
+      # - name: build docker
+      # todo: can we cache an image on GH❓
+      # todo: can we avoid unnecesary rebuilds (f.i. with hash tag)❓
+      # run: docker buildx build --tag rustiko:chef --file dockerfile.ga .
 
       - name: server
         run: docker run --rm --detach -p 4560:4560 --name server --network jamon rustiko:chef
+
+      - name: wait a bit
+        run: sleep 15
 
       - name: sqld
         run: docker run --rm --detach -p 8080:8080 --name sqld -e RUST_LOG=sqld=debug,info --network jamon ghcr.io/tursodatabase/libsql-server:main

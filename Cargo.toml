@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 # libsql-client = "0.33.2"
 url = "2.5.0"
+# libsql = { git = "https://github.com/tursodatabase/libsql", default-features = false, features = ["remote"] }
 libsql = { git = "https://github.com/tursodatabase/libsql" }
 tokio = { version = "1.35.1", features = ["full"] }
 warp = "0.3.6"
