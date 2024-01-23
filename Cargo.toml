@@ -16,7 +16,10 @@ tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 reqwest = "0.11.23"
 backon = "0.4.1"
 anyhow = "1.0.79"
-backoff = "0.4.0"
+backoff = { version = "0.4.0", features = ["tokio"] }
+again = "0.1.2"
+reqwest-retry = "0.3.0"
+reqwest-middleware = "0.2.4"
 
 #? for libsql::Database::open_remote_with_connector
 #? @see https://github.com/tursodatabase/libsql/blob/main/libsql/examples/flutter.rs
