@@ -1,11 +1,14 @@
 {
     "cSpell.words": [
+        "appender",
         "backoff",
         "backon",
+        "hola",
         "libsql",
         "reqwest",
         "Retryable",
         "rustls",
+        "sqlx",
         "webpki"
     ]
 }
