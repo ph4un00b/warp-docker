@@ -1,10 +1,21 @@
+use std::fmt::Display;
+
+#[derive(Debug)]
+struct Tracable(i32, i32, i32);
+
+impl Display for Tracable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "👀serializada")?;
+        Ok(())
+    }
+}
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    //? construct a subscriber that prints formatted traces to stdout
     let subscriber = tracing_subscriber::FmtSubscriber::new();
-    //? use that subscriber to process traces emitted after this point
     tracing::subscriber::set_global_default(subscriber)?;
-    jamon("hola❗");
+
+    let tuple = Tracable(1, 2, 3);
+    jamon("hola❗", &tuple);
     Ok(())
 }
 
@@ -18,9 +29,16 @@ async fn main() -> anyhow::Result<()> {
  *  🍕 is named jamon,
  *  🍕 has fields field_1, whose values are the arguments of jamon
  */
-#[tracing::instrument]
-fn jamon(field_1: &str) {
+#[tracing::instrument(
+    name = "My::name",
+    skip(field_1),
+    fields(
+        //? `%` will serialize with `Display`
+        tu_mamacita = %field_2
+    ),
+)]
+fn jamon(field_1: &str, field_2: &Tracable) {
     tracing::info!(field_1)
 }
 
-// * out: INFO jamon{field_1="hola❗"}: tracing: field_1="hola❗"
+// * out:  INFO My::name{field_2=Tracable(1, 2, 3) tu_mamacita=👀serializada}: tracing_instrument: field_1="hola❗"
