@@ -4,10 +4,15 @@ use warp::Filter;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::fmt::layer())
-        .with(EnvFilter::from_default_env())
-        .init();
+    if cfg!(feature = "console") {
+        console_subscriber::init();
+    } else {
+        tracing_subscriber::registry()
+            .with(tracing_subscriber::fmt::layer())
+            .with(EnvFilter::from_default_env())
+            .init();
+    }
+
     // #[cfg(feature = "local")]
     // {
     //     std::env::set_var("DATABASE_URL", "http://localhost:8080");

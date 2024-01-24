@@ -1,0 +1,6 @@
+[build]
+#? for console-subcriber
+#* @see https://crates.io/crates/console-subscriber
+#* @see https://tokio.rs/tokio/topics/tracing-next-steps
+# TODO: How does this affect the prod build❓
+rustflags = ["--cfg", "tokio_unstable"]
