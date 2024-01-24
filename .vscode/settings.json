@@ -5,10 +5,14 @@
         "backon",
         "hola",
         "libsql",
+        "mamacita",
         "reqwest",
         "Retryable",
         "rustls",
+        "serializada",
+        "serializado",
         "sqlx",
+        "Tracable",
         "webpki"
     ]
 }
