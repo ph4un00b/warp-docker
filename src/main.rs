@@ -1,8 +1,13 @@
 use backon::Retryable;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 use warp::Filter;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::fmt::layer())
+        .with(EnvFilter::from_default_env())
+        .init();
     // #[cfg(feature = "local")]
     // {
     //     std::env::set_var("DATABASE_URL", "http://localhost:8080");
@@ -13,8 +18,6 @@ async fn main() -> anyhow::Result<()> {
         std::env::set_var("DATABASE_URL", "http://sqld:8080");
     }
 
-    setup_logging();
-
     ping_database
         .retry(
             &backon::ExponentialBuilder::default()
@@ -23,18 +26,8 @@ async fn main() -> anyhow::Result<()> {
         )
         .await?;
 
-    // use tracing_subscriber::EnvFilter;
-
-    // let db = libsql_client::Client::from_config(libsql_client::Config {
-    //     url: url::Url::parse("http://127.0.0.1:8080").unwrap(),
-    //     auth_token: None,
-    // })
-    // .await
-    // .unwrap();
     let db_url = std::env::var("DATABASE_URL")?;
-    let db =
-        // libsql::Database::open_remote_with_connector("http://localhost:8080", "", https).unwrap();
-        libsql::Database::open_remote(db_url, "").unwrap();
+    let db = libsql::Database::open_remote(db_url, "").unwrap();
     let conn = db.connect().unwrap();
 
     conn.execute("CREATE TABLE IF NOT EXISTS users (username)", ())
@@ -46,9 +39,9 @@ async fn main() -> anyhow::Result<()> {
         .unwrap();
 
     if let Ok(mut a) = conn.query("SELECT * FROM users", ()).await {
-        println!("rows?: {:?}", a.next().is_ok())
+        tracing::info!("rows?: {:?}", a.next().is_ok())
     }
-    println!("hi 4560 👋");
+    tracing::info!("hi 4560 👋");
     //? GET /hello/warp => 200 OK with body "Hello, warp!"
     let hello = warp::path!("hello" / String).map(|name| format!("Hello, {}!", name));
     warp::serve(hello).run(([0, 0, 0, 0], 4560)).await;
@@ -64,29 +57,16 @@ async fn ping_database() -> anyhow::Result<String> {
         .send()
         .await
         .map_err(|err| {
-            println!("❌ Attempt - failed with error: {}", err);
-            anyhow::anyhow!("some kind of error")
+            tracing::error!("❌ Attempt: {}", err);
+            anyhow::anyhow!("🍕 some kind of error")
         })?;
 
     if !response.status().is_success() {
-        println!("Attempt # failed with status code: {}", response.status());
-        anyhow::bail!("some kind of error");
+        tracing::error!("Attempt # status code: {}", response.status());
+        anyhow::bail!("🍔 some kind of error");
     }
 
     let pong = response.text().await?;
-    println!("✅ Service is available!: {}", pong);
+    tracing::info!("✅ Service is available!: {}", pong);
     Ok(pong)
-}
-
-fn setup_logging() {
-    use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
-
-    // let filter = EnvFilter::builder()
-    //     .with_default_directive(tracing_subscriber::filter LevelFilter::INFO.into())
-    //     .from_env_lossy();
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::fmt::layer())
-        .with(EnvFilter::from_default_env())
-        .init();
-    // tracing_subscriber::registry().with(filter).init();
 }
