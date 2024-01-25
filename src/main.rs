@@ -1,16 +1,29 @@
 use backon::Retryable;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use opentelemetry::global;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use warp::Filter;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     if cfg!(feature = "console") {
+        println!("console");
         console_subscriber::init();
     } else {
+        println!("telemetry");
+        // * run: docker run -p6831:6831/udp -p6832:6832/udp -p16686:16686 -p14268:14268 jaegertracing/all-in-one:latest
+        global::set_text_map_propagator(opentelemetry_jaeger::Propagator::new());
+
+        let tracer = opentelemetry_jaeger::new_agent_pipeline()
+            .with_service_name("warp-docker")
+            .install_simple()?;
+
+        let opentelemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+
         tracing_subscriber::registry()
-            .with(tracing_subscriber::fmt::layer())
-            .with(EnvFilter::from_default_env())
-            .init();
+            .with(opentelemetry)
+            //? Continue logging to stdout
+            .with(tracing_subscriber::fmt::Layer::default())
+            .try_init()?;
     }
 
     // #[cfg(feature = "local")]
@@ -48,7 +61,10 @@ async fn main() -> anyhow::Result<()> {
     }
     tracing::info!("hi 4560 👋");
     //? GET /hello/warp => 200 OK with body "Hello, warp!"
-    let hello = warp::path!("hello" / String).map(|name| format!("Hello, {}!", name));
+    let hello = warp::path!("hello" / String).map(|name| {
+        tracing::info!("✅ alo request");
+        format!("Hello, {}!", name)
+    });
     warp::serve(hello).run(([0, 0, 0, 0], 4560)).await;
     Ok(())
 }

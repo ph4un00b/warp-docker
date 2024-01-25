@@ -25,6 +25,9 @@ reqwest-retry = "0.3.0"
 reqwest-middleware = "0.2.4"
 tracing-appender = "0.2.3"
 console-subscriber = "0.2.0"
+opentelemetry = "0.21.0"
+tracing-opentelemetry = "0.22.0"
+opentelemetry-jaeger = "0.20.0"
 
 #? for libsql::Database::open_remote_with_connector
 #? @see https://github.com/tursodatabase/libsql/blob/main/libsql/examples/flutter.rs
