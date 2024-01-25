@@ -3,13 +3,14 @@ use opentelemetry::global;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use warp::Filter;
 
+// todo: check for single threaded❗
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     if cfg!(feature = "console") {
-        println!("console");
         console_subscriber::init();
+        tracing::info!("✅ console");
     } else {
-        println!("telemetry");
+        // * @see https://tokio.rs/tokio/topics/tracing-next-steps
         // * run: docker run -p6831:6831/udp -p6832:6832/udp -p16686:16686 -p14268:14268 jaegertracing/all-in-one:latest
         global::set_text_map_propagator(opentelemetry_jaeger::Propagator::new());
 
@@ -24,6 +25,7 @@ async fn main() -> anyhow::Result<()> {
             //? Continue logging to stdout
             .with(tracing_subscriber::fmt::Layer::default())
             .try_init()?;
+        tracing::info!("✅ telemetry");
     }
 
     // #[cfg(feature = "local")]
@@ -69,7 +71,7 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-//? async fn fetch<TUrl: reqwest::IntoUrl>(url: TUrl, tag: &str) -> anyhow::Result<()> {
+// todo: async fn fetch<TUrl: reqwest::IntoUrl>(url: TUrl, tag: &str) -> anyhow::Result<()> {
 async fn ping_database() -> anyhow::Result<String> {
     let url = std::env::var("DATABASE_URL")?;
     let client = reqwest::Client::new();
